@@ -1,7 +1,9 @@
 ﻿#include<iostream>
 #include<vector>
 #include <cstdlib>
+
 /*надо сделать выведение всего пустого пространства при его большом количестве*/
+
 using namespace std;
 
 bool blast = false;
@@ -103,6 +105,7 @@ void print() {
     }
     cout << endl;
 }
+
 
 void game_process() {
     int x, y;
