@@ -6,9 +6,11 @@
 
 using namespace std;
 
+int mine = 15;
+
 bool blast = false;
 
-int mine = 15;
+int flags_true = mine;
 
 vector<vector<int>> field = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                               { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -83,17 +85,23 @@ void print_debug() {
 }
 
 void print() {
+    cout << flags_true << endl;
     for (int i = 0; i < 10; i++) {
         for (int o = 0; o < 10; o++) {
             if (field_flags[i][o] == 0) {
-                cout << " X ";
+                cout << " - ";
             }
             else if (field_flags[i][o] == 1) {
                 cout << " F ";
             }
             else if (field_flags[i][o] == 2) {
                 if (field[i][o] != 9) {
-                    cout << " " << field[i][o] << " ";
+                    if(field[i][o] != 0) {
+                        cout << " " << field[i][o] << " ";
+                    }
+                    else {
+                        cout << " # ";
+                    }
                 }
                 else {
                     cout << " * ";
@@ -104,15 +112,19 @@ void print() {
         cout << endl;
     }
     cout << endl;
+
 }
 
 void game_process() {
     int x, y;
     string op;
-    while (blast == false/*|| flags == mines*/) {
+    while (blast == false || flags_true != 0) {
         cin >> x >> y >> op;
         if (op == "f") {
             field_flags[x][y] = 1;
+            if (field[x][y] == 9) {
+                flags_true--;
+            }
         }
         else if (op == "o") {
             field_flags[x][y] = 2;
