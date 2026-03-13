@@ -1,5 +1,5 @@
-﻿#include<iostream>
-#include<vector>
+﻿#include <iostream>
+#include <vector>
 #include <cstdlib>
 #include <windows.h>
 #include <string>
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int mine = 15;
+int mine = 10;
 
 bool blast = false;
 int flags_true = mine;
@@ -142,10 +142,9 @@ void print() {
     for (int i = 0; i < 10; i++) {
         for (int o = 0; o < 10; o++) {
             if (field_flags[i][o] == 0) {
-                printColored(" - ", defaultAttr); // скрытое поле — стандартный цвет
+                printColored(" - ", defaultAttr);
             }
             else if (field_flags[i][o] == 1) {
-                // флаг — ярко-жёлтый
                 printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
             }
             else if (field_flags[i][o] == 2) {
@@ -155,18 +154,21 @@ void print() {
                         switch (field[i][o]) {
                         case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
                         case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 3: col = FOREGROUND_RED | FOREGROUND_INTENSITY; break;
+                        case 3: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                        case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                        case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+
                         default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
                         }
                         printColored(" " + to_string(field[i][o]) + " ", col);
                     }
                     else {
-                        // пустое открытое — светло-серое
+                        // пустое открытое —  серое
                         printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
                     }
                 }
                 else {
-                    // мина — ярко-красная
+                    // мина красная
                     printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
                     blast = true;
                 }
@@ -180,18 +182,25 @@ void print() {
 void game_process() {
     int x, y;
     string op;
-    while (blast == false || flags_true != 0) {
+    while (blast != true && flags_true != 0) {
         cin >> x >> y >> op;
-        if (op == "f") {
-            field_flags[x][y] = 1;
-            if (field[x][y] == 9) {
-                flags_true--;
+        x--;
+        y--;
+        if (x >= 1 && x <= 10 && y >= 1 && y <= 10) {
+            if (op == "f") {
+                field_flags[x][y] = 1;
+                if (field[x][y] == 9) {
+                    flags_true--;
+                }
             }
+            else if (op == "o") {
+                field_flags[x][y] = 2;
+            }
+            print();
         }
-        else if (op == "o") {
-            field_flags[x][y] = 2;
+        else {
+			cout << "wrong coordinates" << endl << "try again" << endl;
         }
-        print();
     }
 }
 
