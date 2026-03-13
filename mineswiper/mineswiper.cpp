@@ -7,7 +7,6 @@
 using namespace std;
 
 bool blast = false;
-
 int mine = 15;
 
 vector<vector<int>> field = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
