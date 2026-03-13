@@ -1,6 +1,8 @@
 ﻿#include<iostream>
 #include<vector>
 #include <cstdlib>
+#include <windows.h>
+#include <string>
 
 /*надо сделать выведение всего пустого пространства при его большом количестве*/
 
@@ -9,8 +11,10 @@ using namespace std;
 int mine = 15;
 
 bool blast = false;
-
 int flags_true = mine;
+
+static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+static WORD defaultAttr = 0;
 
 vector<vector<int>> field = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                               { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -34,7 +38,25 @@ vector<vector<int>> field_flags = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } };
 
+void initConsoleColor() {
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        defaultAttr = csbi.wAttributes;
+    }
+    else {
+        defaultAttr = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+    }
+}
 
+void setColor(WORD attr) {
+    SetConsoleTextAttribute(hConsole, attr);
+}
+
+void printColored(const std::string& s, WORD color) {
+    setColor(color);
+    std::cout << s;
+    setColor(defaultAttr);
+}
 
 int random(int min, int max) {
     int rN = rand() % (max - min + 1) + min;
@@ -84,7 +106,7 @@ void print_debug() {
     cout << endl;
 }
 
-void print() {
+/*void print() {
     cout << flags_true << endl;
     for (int i = 0; i < 10; i++) {
         for (int o = 0; o < 10; o++) {
@@ -113,6 +135,46 @@ void print() {
     }
     cout << endl;
 
+}*/
+
+void print() {
+    std::cout << flags_true << std::endl;
+    for (int i = 0; i < 10; i++) {
+        for (int o = 0; o < 10; o++) {
+            if (field_flags[i][o] == 0) {
+                printColored(" - ", defaultAttr); // скрытое поле — стандартный цвет
+            }
+            else if (field_flags[i][o] == 1) {
+                // флаг — ярко-жёлтый
+                printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            }
+            else if (field_flags[i][o] == 2) {
+                if (field[i][o] != 9) {
+                    if (field[i][o] != 0) {
+                        WORD col;
+                        switch (field[i][o]) {
+                        case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                        case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                        case 3: col = FOREGROUND_RED | FOREGROUND_INTENSITY; break;
+                        default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                        }
+                        printColored(" " + to_string(field[i][o]) + " ", col);
+                    }
+                    else {
+                        // пустое открытое — светло-серое
+                        printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                    }
+                }
+                else {
+                    // мина — ярко-красная
+                    printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
+                    blast = true;
+                }
+            }
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 void game_process() {
@@ -134,6 +196,7 @@ void game_process() {
 }
 
 int main() {
+    initConsoleColor();
     string pasw;
     srand(static_cast<unsigned int>(time(nullptr)));
     fill_mine();
