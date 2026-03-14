@@ -169,7 +169,7 @@ void reveal(int sx, int sy) {
         cout << endl;
     }
     cout << endl;
-
+    */
 
 void print() {
     std::cout << flags_true << std::endl;
