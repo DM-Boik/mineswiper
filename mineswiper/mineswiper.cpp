@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <windows.h>
 #include <string>
+#include <queue>
 
 /*надо сделать выведение всего пустого пространства при его большом количестве*/
 
@@ -106,36 +107,111 @@ void print_debug() {
     cout << endl;
 }
 
+void reveal(int sx, int sy) {
+    if (sx < 0 || sx >= 10 || sy < 0 || sy >= 10) return;
+    if (field_flags[sx][sy] == 2 || field_flags[sx][sy] == 1) return; // уже открыта или помечена флагом
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ sx, sy });
+    field_flags[sx][sy] = 2;
+
+    while (!q.empty()) {
+        auto cur = q.front(); q.pop();
+        int x = cur.first, y = cur.second;
+
+        for (int dx = -1; dx <= 1; ++dx) {
+            for (int dy = -1; dy <= 1; ++dy) {
+                int nx = x + dx, ny = y + dy;
+                if (nx < 0 || nx >= 10 || ny < 0 || ny >= 10) continue;
+                if (field_flags[nx][ny] == 1 || field_flags[nx][ny] == 2) continue; // флаг или уже открыт
+
+                // откроем соседнюю клетку
+                field_flags[nx][ny] = 2;
+
+                if (field[nx][ny] == 0) {
+                    // если соседний 0 — добавляем в очередь для дальнейшего расширения
+                    q.push({ nx, ny });
+                }
+                else if (field[nx][ny] == 9) {
+                    // на всякий случай: если случайно открыли мину — взрыв
+                    blast = true;
+                }
+            }
+        }
+    }
+}
+
+/*void print() {
+    cout << flags_true << endl;
+    for (int i = 0; i < 10; i++) {
+        for (int o = 0; o < 10; o++) {
+            if (field_flags[i][o] == 0) {
+                cout << " - ";
+            }
+            else if (field_flags[i][o] == 1) {
+                cout << " F ";
+            }
+            else if (field_flags[i][o] == 2) {
+                if (field[i][o] != 9) {
+                    if(field[i][o] != 0) {
+                        cout << " " << field[i][o] << " ";
+                    }
+                    else {
+                        cout << " # ";
+                    }
+                }
+                else {
+                    cout << " * ";
+                    blast = true;
+                }
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
 
 
 void print() {
     std::cout << flags_true << std::endl;
-    for (int i = 0; i < 10; i++) {
-        for (int o = 0; o < 10; o++) {
-            if (field_flags[i][o] == 0) {
-                printColored(" - ", defaultAttr);
+    for (int i = -1; i < 10; i++) {
+        for (int o = -1; o < 10; o++) {
+            if (i == -1 && o == -1) {
+                cout << " 0 " << " ";
+			}
+            else if (i == -1 && i != 9) {
+                cout << " " << (o + 1) << ' ';
             }
-            else if (field_flags[i][o] == 1) {
-                printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            else if (o == -1 && i != 9) {
+                cout << " " << (i + 1) << ' ' << "|";
             }
-            else if (field_flags[i][o] == 2) {
-                if (field[i][o] != 9) {
-                    if (field[i][o] != 0) {
-                        WORD col;
-                        switch (field[i][o]) {
-                        case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                        case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 3: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+            else if(i == 9 && o == -1){
+                cout << " " << (i + 1) << '|';
+            }
+            else {
+                if (field_flags[i][o] == 0) {
+                    printColored(" - ", defaultAttr);
+                }
+                else if (field_flags[i][o] == 1) {
+                    printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                }
+                else if (field_flags[i][o] == 2) {
+                    if (field[i][o] != 9) {
+                        if (field[i][o] != 0) {
+                            WORD col;
+                            switch (field[i][o]) {
+                            case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                            case 2: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 3: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
 
-                        default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                            default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                            }
+                            printColored(" " + to_string(field[i][o]) + " ", col);
                         }
-                        printColored(" " + to_string(field[i][o]) + " ", col);
-                    }
-                    else {
-                        // пустое открытое —  серое
-                        printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                        else {
+                            printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                        }
                     }
                 }
                 else {
@@ -155,17 +231,36 @@ void game_process() {
     string op;
     while (blast != true && flags_true != 0) {
         cin >> x >> y >> op;
-        x--;
-        y--;
-        if (x >= 1 && x <= 10 && y >= 1 && y <= 10) {
+        if (x >= 1 && x <= 10 && y >= 1 && y <= 10 && (op == "o" || op == "f")) {
+            x--;
+            y--;
             if (op == "f") {
-                field_flags[x][y] = 1;
-                if (field[x][y] == 9) {
-                    flags_true--;
+                if (field_flags[x][y] == 0) {
+                    field_flags[x][y] = 1;
+                    if (field[x][y] == 9) {
+                        flags_true--;
+                    }
+                }
+                else if (field_flags[x][y] == 1) {
+                    field_flags[x][y] = 0;
+                    if (field[x][y] == 9) {
+                        flags_true++;
+                    }
                 }
             }
             else if (op == "o") {
-                field_flags[x][y] = 2;
+                if (field_flags[x][y] != 1 && field_flags[x][y] != 2) {
+                    if (field[x][y] == 9) {
+                        field_flags[x][y] = 2;
+                        blast = true;
+                    }
+                    else if (field[x][y] == 0) {
+                        reveal(x, y);
+                    }
+                    else {
+                        field_flags[x][y] = 2;
+                    }
+                }
             }
             print();
         }
