@@ -256,7 +256,6 @@ void game_process() {
                         blast = true;
                     }
                     else if (field[x][y] == 0) {
-                        // раскрыть всю пустую область — здесь вызываем reveal
                         reveal(x, y);
                     }
                     else {
