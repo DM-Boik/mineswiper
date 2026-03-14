@@ -231,6 +231,7 @@ void game_process() {
     }
 }
 
+
 int main() {
     initConsoleColor();
     string pasw;
