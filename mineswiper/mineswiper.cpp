@@ -174,38 +174,52 @@ void reveal(int sx, int sy) {
 
 void print() {
     std::cout << flags_true << std::endl;
-    for (int i = 0; i < 10; i++) {
-        for (int o = 0; o < 10; o++) {
-            if (field_flags[i][o] == 0) {
-                printColored(" - ", defaultAttr);
+    for (int i = -1; i < 10; i++) {
+        for (int o = -1; o < 10; o++) {
+            if (i == -1 && o == -1) {
+                cout << " 0 " << " ";
+			}
+            else if (i == -1 && i != 9) {
+                cout << " " << (o + 1) << ' ';
             }
-            else if (field_flags[i][o] == 1) {
-                printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            else if (o == -1 && i != 9) {
+                cout << " " << (i + 1) << ' ' << "|";
             }
-            else if (field_flags[i][o] == 2) {
-                if (field[i][o] != 9) {
-                    if (field[i][o] != 0) {
-                        WORD col;
-                        switch (field[i][o]) {
-                        case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                        case 2: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 3: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-
-                        default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                        }
-                        printColored(" " + to_string(field[i][o]) + " ", col);
-                    }
-                    else {
-                        printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-                    }
-                }
+            else if(i == 9 && o == -1){
+                cout << " " << (i + 1) << '|';
             }
             else {
-                // мина красная
-                printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
-                blast = true;
+                if (field_flags[i][o] == 0) {
+                    printColored(" - ", defaultAttr);
+                }
+                else if (field_flags[i][o] == 1) {
+                    printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                }
+                else if (field_flags[i][o] == 2) {
+                    if (field[i][o] != 9) {
+                        if (field[i][o] != 0) {
+                            WORD col;
+                            switch (field[i][o]) {
+                            case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                            case 2: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 3: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                            case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+
+                            default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                            }
+                            printColored(" " + to_string(field[i][o]) + " ", col);
+                        }
+                        else {
+                            printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                        }
+                    }
+                }
+                else {
+                    // мина красная
+                    printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
+                    blast = true;
+                }
             }
         }
         std::cout << std::endl;
