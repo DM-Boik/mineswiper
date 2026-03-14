@@ -141,7 +141,6 @@ void reveal(int sx, int sy) {
     }
 }
 
-
 void print() {
     std::cout << flags_true << std::endl;
     for (int i = -1; i < 10; i++) {
@@ -255,4 +254,6 @@ int main() {
     }
     print();
     game_process();
+    cout << " to escape enter something:";
+    cin >> pasw;
 }
