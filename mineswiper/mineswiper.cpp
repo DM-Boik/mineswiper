@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <windows.h>
 #include <string>
+#include <queue>
 
 /*надо сделать выведение всего пустого пространства при его большом количестве*/
 
@@ -106,6 +107,40 @@ void print_debug() {
     cout << endl;
 }
 
+void reveal(int sx, int sy) {
+    if (sx < 0 || sx >= 10 || sy < 0 || sy >= 10) return;
+    if (field_flags[sx][sy] == 2 || field_flags[sx][sy] == 1) return; // уже открыта или помечена флагом
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ sx, sy });
+    field_flags[sx][sy] = 2;
+
+    while (!q.empty()) {
+        auto cur = q.front(); q.pop();
+        int x = cur.first, y = cur.second;
+
+        for (int dx = -1; dx <= 1; ++dx) {
+            for (int dy = -1; dy <= 1; ++dy) {
+                int nx = x + dx, ny = y + dy;
+                if (nx < 0 || nx >= 10 || ny < 0 || ny >= 10) continue;
+                if (field_flags[nx][ny] == 1 || field_flags[nx][ny] == 2) continue; // флаг или уже открыт
+
+                // откроем соседнюю клетку
+                field_flags[nx][ny] = 2;
+
+                if (field[nx][ny] == 0) {
+                    // если соседний 0 — добавляем в очередь для дальнейшего расширения
+                    q.push({ nx, ny });
+                }
+                else if (field[nx][ny] == 9) {
+                    // на всякий случай: если случайно открыли мину — взрыв
+                    blast = true;
+                }
+            }
+        }
+    }
+}
+
 /*void print() {
     cout << flags_true << endl;
     for (int i = 0; i < 10; i++) {
@@ -153,8 +188,8 @@ void print() {
                         WORD col;
                         switch (field[i][o]) {
                         case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                        case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                        case 3: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                        case 2: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                        case 3: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
                         case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
                         case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
 
@@ -163,42 +198,14 @@ void print() {
                         printColored(" " + to_string(field[i][o]) + " ", col);
                     }
                     else {
-                        while (i + 1 == 0) {
-                            for (int q = i - 1; q <= i + 1; q++) {
-                                for (int w = o - 1; w <= o + 1; w++) {
-                                    if (q >= 0 && q < 10 && w >= 0 && w < 10) {
-                                        if (field[w][q] == 0) {
-                                            printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-                                        }
-                                        else {
-                                            if (field[i][o] != 0) {
-                                                WORD col;
-                                                switch (field[i][o]) {
-                                                case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                                                case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                                                case 3: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                                                case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
-                                                case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-
-                                                default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
-                                                }
-                                                printColored(" " + to_string(field[w][q]) + " ", col);
-                                            }
-                                        }
-
-
-                                    }
-                                }
-                            }
-                            i++;
-                        }
+                        printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
                     }
                 }
-                else {
-                    // мина красная
-                    printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
-                    blast = true;
-                }
+            }
+            else {
+                // мина красная
+                printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
+                blast = true;
             }
         }
         std::cout << std::endl;
@@ -211,17 +218,37 @@ void game_process() {
     string op;
     while (blast != true && flags_true != 0) {
         cin >> x >> y >> op;
-        if (/*x > 1 && x < 11 && y > 0 && y < 11*/ mine = mine) {
+        if (x >= 1 && x <= 10 && y >= 1 && y <= 10 && (op == "o" || op == "f")) {
             x--;
             y--;
             if (op == "f") {
-                field_flags[x][y] = 1;
-                if (field[x][y] == 9) {
-                    flags_true--;
+                if (field_flags[x][y] == 0) {
+                    field_flags[x][y] = 1;
+                    if (field[x][y] == 9) {
+                        flags_true--;
+                    }
+                }
+                else if (field_flags[x][y] == 1) {
+                    field_flags[x][y] = 0;
+                    if (field[x][y] == 9) {
+                        flags_true++;
+                    }
                 }
             }
             else if (op == "o") {
-                field_flags[x][y] = 2;
+                if (field_flags[x][y] != 1 && field_flags[x][y] != 2) {
+                    if (field[x][y] == 9) {
+                        field_flags[x][y] = 2;
+                        blast = true;
+                    }
+                    else if (field[x][y] == 0) {
+                        // раскрыть всю пустую область — здесь вызываем reveal
+                        reveal(x, y);
+                    }
+                    else {
+                        field_flags[x][y] = 2;
+                    }
+                }
             }
             print();
         }
