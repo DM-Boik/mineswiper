@@ -163,8 +163,35 @@ void print() {
                         printColored(" " + to_string(field[i][o]) + " ", col);
                     }
                     else {
-                        // пустое открытое —  серое
-                        printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                        while (i + 1 == 0) {
+                            for (int q = i - 1; q <= i + 1; q++) {
+                                for (int w = o - 1; w <= o + 1; w++) {
+                                    if (q >= 0 && q < 10 && w >= 0 && w < 10) {
+                                        if (field[w][q] == 0) {
+                                            printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                                        }
+                                        else {
+                                            if (field[i][o] != 0) {
+                                                WORD col;
+                                                switch (field[i][o]) {
+                                                case 1: col = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                                                case 2: col = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                                                case 3: col = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                                                case 4: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+                                                case 5: col = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+
+                                                default: col = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+                                                }
+                                                printColored(" " + to_string(field[w][q]) + " ", col);
+                                            }
+                                        }
+
+
+                                    }
+                                }
+                            }
+                            i++;
+                        }
                     }
                 }
                 else {
@@ -184,9 +211,9 @@ void game_process() {
     string op;
     while (blast != true && flags_true != 0) {
         cin >> x >> y >> op;
-        x--;
-        y--;
-        if (x >= 1 && x <= 10 && y >= 1 && y <= 10) {
+        if (/*x > 1 && x < 11 && y > 0 && y < 11*/ mine = mine) {
+            x--;
+            y--;
             if (op == "f") {
                 field_flags[x][y] = 1;
                 if (field[x][y] == 9) {
