@@ -5,8 +5,6 @@
 #include <string>
 #include <queue>
 
-/*надо сделать выведение всего пустого пространства при его большом количестве*/
-
 using namespace std;
 
 int mine = 10;
@@ -162,7 +160,7 @@ void print() {
                     printColored(" - ", defaultAttr);
                 }
                 else if (field_flags[i][o] == 1) {
-                    printColored(" F ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+                    printColored(" F ", FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
                 }
                 else if (field_flags[i][o] == 2) {
                     if (field[i][o] != 9) {
@@ -183,11 +181,10 @@ void print() {
                             printColored(" # ", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
                         }
                     }
-                }
-                else {
-                    // мина красная
-                    printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
-                    blast = true;
+                    else {
+                        printColored(" * ", FOREGROUND_RED | FOREGROUND_INTENSITY);
+                        blast = true;
+                    }
                 }
             }
         }
